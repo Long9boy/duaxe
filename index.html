@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="data:,">
+<title>Đua Xe Ao Làng</title>
+<link rel="stylesheet" href="src/style.css">
+<script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+      "three-mesh-bvh": "https://unpkg.com/three-mesh-bvh@0.6.0/build/index.module.js",
+      "firebase/app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
+      "firebase/database": "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"
+    }
+  }
+</script>
+</head>
+<body>
+
+<!-- Mobile Landscape Request Overlay -->
+<div id="mobile-rotate-overlay">
+    <div class="rotate-icon"></div>
+    <h2>Xoay Ngang Thiết Bị</h2>
+    <p>Vui lòng xoay ngang màn hình của bạn để chơi game tốt nhất.</p>
+</div>
+
+<!-- Mobile Controls Overlay -->
+<div id="mobileControls" class="hidden">
+    <!-- Left Joystick -->
+    <div id="joystickBase">
+        <div id="joystickStick"></div>
+    </div>
+    
+    <!-- Right Buttons -->
+    <div id="mobileButtonsContainer">
+        <button id="mobileShiftBtn" class="mobile-btn square-btn">SHIFT</button>
+        <button id="mobileNitroBtn" class="mobile-btn round-btn">NITRO</button>
+    </div>
+</div>
+
+<canvas id="gameCanvas" class="hidden"></canvas>
+<div id="crosshair" class="hidden"></div>
+<div id="labelsContainer"></div>
+<div id="countdownOverlay" class="hidden">
+    <div id="countdownNumber">3</div>
+</div>
+
+<div id="coordinatesHUD" class="hidden">
+    <div>X: <span id="hudX">0.00</span></div>
+    <div>Y: <span id="hudY">0.00</span></div>
+    <div>Z: <span id="hudZ">0.00</span></div>
+    <div id="flyStatus">Chế độ: đi bộ</div>
+</div>
+
+<div id="loadingScreen" class="hidden">
+    <div id="loadingText">Đang tải dữ tài nguyên... 0%</div>
+    <div id="loadingBarContainer">
+        <div id="loadingBar"></div>
+    </div>
+</div>
+
+<div id="customDialog" class="dialog-overlay hidden">
+    <div class="dialog-box">
+        <p id="dialogMessage">Thông báo</p>
+        <button id="dialogConfirmBtn" class="dialog-btn">Xác nhận</button>
+    </div>
+</div>
+
+<div id="lobby" class="panel">
+    <h1>Đua Xe Ao Làng</h1>
+    <input id="playerName" placeholder="Nhập tên người chơi..."><br>
+    <button id="createBtn">Tạo Phòng</button>
+
+    <div class="joinRow">
+        <input id="roomId" placeholder="ID phòng">
+        <button id="joinBtn">Tham gia</button>
+    </div>
+
+    <button id="testBtn" class="testBtn">Chơi đơn</button>
+</div>
+
+<div id="room" class="panel hidden">
+    <div class="roomTitle">
+        Id phòng: <span id="roomIdText" class="roomIdText"></span>
+        <button id="copyRoomIdBtn" class="copyBtn" title="Sao chép ID phòng">Sao chép</button>
+    </div>
+
+    <div class="playerGrid">
+        <div id="p0Box" class="playerBox">
+            <div class="avatar">H</div>
+            <div id="p0Name" class="playerName">Trống</div>
+            <span class="badge hostBadge">Chủ phòng</span>
+        </div>
+        <div id="p1Box" class="playerBox">
+            <div class="avatar">1</div>
+            <div id="p1Name" class="playerName">Trống</div>
+        </div>
+        <div id="p2Box" class="playerBox">
+            <div class="avatar">2</div>
+            <div id="p2Name" class="playerName">Trống</div>
+        </div>
+        <div id="p3Box" class="playerBox">
+            <div class="avatar">3</div>
+            <div id="p3Name" class="playerName">Trống</div>
+        </div>
+        <div id="p4Box" class="playerBox">
+            <div class="avatar">4</div>
+            <div id="p4Name" class="playerName">Trống</div>
+        </div>
+        <div id="p5Box" class="playerBox">
+            <div class="avatar">5</div>
+            <div id="p5Name" class="playerName">Trống</div>
+        </div>
+    </div>
+
+    <div id="bottomRow" class="bottomRow">
+        <div id="guestWrapper" class="guestControl">
+            <span id="waitingText" class="waitingText hidden">Đang đợi chủ phòng...</span>
+            <button id="leaveBtn">Thoát</button>
+        </div>
+        <button id="startBtn">Bắt đầu</button>
+    </div>
+</div>
+
+<button id="exitGameBtn" class="hidden exitGameBtn" title="Thoat ve sanh cho">&#x2715; Thoat</button>
+
+<div id="chatHint" class="hidden">Nhấn Enter hoặc T để chat | "fly" để bật/tắt chế độ bay</div>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

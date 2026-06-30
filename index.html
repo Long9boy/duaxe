@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="data:,">
+<title>Đua Xe Ao Làng</title>
+<link rel="stylesheet" href="src/style.css">
+<script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+      "three-mesh-bvh": "https://unpkg.com/three-mesh-bvh@0.6.0/build/index.module.js",
+      "firebase/app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
+      "firebase/database": "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"
+    }
+  }
+</script>
+</head>
+<body>
+
+<!-- Mobile Landscape Request Overlay -->
+<div id="mobile-rotate-overlay">
+    <div class="rotate-icon"></div>
+    <h2>Xoay Ngang Thiết Bị</h2>
+    <p>Vui lòng xoay ngang màn hình của bạn để chơi game tốt nhất.</p>
+</div>
+
+<!-- Mobile Controls Overlay -->
+<div id="mobileControls" class="hidden">
+    <!-- Left Joystick -->
+    <div id="joystickBase">
+        <div id="joystickStick"></div>
+    </div>
+    
+    <!-- Right Buttons -->
+    <div id="mobileButtonsContainer">
+        <button id="mobileShiftBtn" class="mobile-btn square-btn">SHIFT</button>
+        <button id="mobileSkillBtn" class="mobile-btn square-btn mobile-btn-skill">E SKILL</button>
+        <button id="mobileNitroBtn" class="mobile-btn round-btn">NITRO</button>
+        <button id="mobileAttackBtn" class="mobile-btn round-btn mobile-btn-attack">ATTACK</button>
+    </div>
+</div>
+
+<canvas id="gameCanvas" class="hidden"></canvas>
+<div id="crosshair" class="hidden"><span></span><span></span><span></span><span></span></div>
+<div id="labelsContainer"></div>
+<div id="countdownOverlay" class="hidden">
+    <div id="countdownNumber">3</div>
+</div>
+
+<div id="coordinatesHUD" class="hidden">
+    <div>X: <span id="hudX">0.00</span></div>
+    <div>Y: <span id="hudY">0.00</span></div>
+    <div>Z: <span id="hudZ">0.00</span></div>
+    <div id="flyStatus">Chế độ: đi bộ</div>
+</div>
+
+<div id="loadingScreen" class="hidden">
+    <div id="loadingText">Đang tải dữ tài nguyên... 0%</div>
+    <div id="loadingBarContainer">
+        <div id="loadingBar"></div>
+    </div>
+</div>
+
+<div id="customDialog" class="dialog-overlay hidden">
+    <div class="dialog-box">
+        <p id="dialogMessage">Thông báo</p>
+        <button id="dialogConfirmBtn" class="dialog-btn">Xác nhận</button>
+    </div>
+</div>
+
+<div id="lobby" class="panel">
+    <h1>Đua Xe Ao Làng</h1>
+    <div class="name-row">
+        <div id="lobbyAvatar" class="lobby-avatar" title="Chọn Avatar"></div>
+        <input id="playerName" placeholder="Nhập tên người chơi...">
+    </div>
+    
+    <div id="lobbyVehicle" class="lobby-vehicle-card">
+        <div class="lobby-vehicle-icon-wrap">
+            <img id="lobbyVehicleIcon" src="assets/icons_pack/vehicle/xelan.ico" alt="Vehicle">
+        </div>
+        <div class="lobby-vehicle-info">
+            <span id="lobbyVehicleName" class="lobby-vehicle-name">Xe lăn</span>
+            <div id="lobbyVehicleStats" class="stat-bars"></div>
+        </div>
+    </div>
+
+    <button id="createBtn">Tạo Phòng</button>
+
+    <div class="joinRow">
+        <input id="roomId" placeholder="ID phòng">
+        <button id="joinBtn">Tham gia</button>
+    </div>
+
+    <div class="singlePlayerRow">
+        <button id="testBtn" class="testBtn">Chơi đơn</button>
+        <div id="singlePlayerMapBtn" class="map-round-btn" title="Chọn bản đồ">
+            <img id="singlePlayerMapIcon" src="assets/icons_pack/maps/map.icon" alt="Map" onerror="this.style.opacity='0'">
+        </div>
+    </div>
+</div>
+
+<div id="room" class="panel hidden">
+    <div class="roomTitle">
+        Id phòng: <span id="roomIdText" class="roomIdText"></span>
+        <button id="copyRoomIdBtn" class="copyBtn" title="Sao chép ID phòng">Sao chép</button>
+    </div>
+
+    <div class="map-select-row">
+        <span class="map-label">Bản đồ:</span>
+        <div id="roomMapDropdown" class="map-dropdown disabled">
+            <div id="roomMapDropdownSelected" class="map-dropdown-selected">
+                <img id="roomMapDropdownIcon" class="map-dropdown-icon" src="assets/icons_pack/maps/hongkong_city.ico" alt="" onerror="this.style.opacity='0'">
+                <span id="roomMapDropdownLabel" data-map-id="hongkong_city">Hồng Kông</span>
+                <span class="map-dropdown-arrow">▾</span>
+            </div>
+            <div id="roomMapDropdownList" class="map-dropdown-list hidden">
+                <div class="map-dropdown-item" data-map-id="hongkong_city">
+                    <img class="map-dropdown-icon" src="assets/icons_pack/maps/hongkong_city.ico" alt="" onerror="this.style.opacity='0'">
+                    <span>Hồng Kông</span>
+                </div>
+                <div class="map-dropdown-item" data-map-id="shanghai_international_circuit">
+                    <img class="map-dropdown-icon" src="assets/icons_pack/maps/shanghai_international_circuit.ic0" alt="" onerror="this.style.opacity='0'">
+                    <span>Thượng Hải</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="playerGrid">
+        <div id="p0Box" class="playerBox">
+            <div class="avatar-container">
+                <img id="p0Avatar" class="player-box-avatar" src="" style="display:none;">
+                <div id="p0AvatarPlaceholder" class="avatar-placeholder">H</div>
+            </div>
+            <div class="name-vehicle-container">
+                <div id="p0Name" class="playerName">Trống</div>
+                <div id="p0VehicleTag" class="vehicle-tag" style="display:none;">
+                    <img id="p0VehicleIcon" src="" class="vehicle-tag-icon">
+                    <span id="p0VehicleName" class="vehicle-tag-name"></span>
+                </div>
+            </div>
+            <span class="badge hostBadge">Chủ phòng</span>
+        </div>
+        <div id="p1Box" class="playerBox">
+            <div class="avatar-container">
+                <img id="p1Avatar" class="player-box-avatar" src="" style="display:none;">
+                <div id="p1AvatarPlaceholder" class="avatar-placeholder">1</div>
+            </div>
+            <div class="name-vehicle-container">
+                <div id="p1Name" class="playerName">Trống</div>
+                <div id="p1VehicleTag" class="vehicle-tag" style="display:none;">
+                    <img id="p1VehicleIcon" src="" class="vehicle-tag-icon">
+                    <span id="p1VehicleName" class="vehicle-tag-name"></span>
+                </div>
+            </div>
+        </div>
+        <div id="p2Box" class="playerBox">
+            <div class="avatar-container">
+                <img id="p2Avatar" class="player-box-avatar" src="" style="display:none;">
+                <div id="p2AvatarPlaceholder" class="avatar-placeholder">2</div>
+            </div>
+            <div class="name-vehicle-container">
+                <div id="p2Name" class="playerName">Trống</div>
+                <div id="p2VehicleTag" class="vehicle-tag" style="display:none;">
+                    <img id="p2VehicleIcon" src="" class="vehicle-tag-icon">
+                    <span id="p2VehicleName" class="vehicle-tag-name"></span>
+                </div>
+            </div>
+        </div>
+        <div id="p3Box" class="playerBox">
+            <div class="avatar-container">
+                <img id="p3Avatar" class="player-box-avatar" src="" style="display:none;">
+                <div id="p3AvatarPlaceholder" class="avatar-placeholder">3</div>
+            </div>
+            <div class="name-vehicle-container">
+                <div id="p3Name" class="playerName">Trống</div>
+                <div id="p3VehicleTag" class="vehicle-tag" style="display:none;">
+                    <img id="p3VehicleIcon" src="" class="vehicle-tag-icon">
+                    <span id="p3VehicleName" class="vehicle-tag-name"></span>
+                </div>
+            </div>
+        </div>
+        <div id="p4Box" class="playerBox">
+            <div class="avatar-container">
+                <img id="p4Avatar" class="player-box-avatar" src="" style="display:none;">
+                <div id="p4AvatarPlaceholder" class="avatar-placeholder">4</div>
+            </div>
+            <div class="name-vehicle-container">
+                <div id="p4Name" class="playerName">Trống</div>
+                <div id="p4VehicleTag" class="vehicle-tag" style="display:none;">
+                    <img id="p4VehicleIcon" src="" class="vehicle-tag-icon">
+                    <span id="p4VehicleName" class="vehicle-tag-name"></span>
+                </div>
+            </div>
+        </div>
+        <div id="p5Box" class="playerBox">
+            <div class="avatar-container">
+                <img id="p5Avatar" class="player-box-avatar" src="" style="display:none;">
+                <div id="p5AvatarPlaceholder" class="avatar-placeholder">5</div>
+            </div>
+            <div class="name-vehicle-container">
+                <div id="p5Name" class="playerName">Trống</div>
+                <div id="p5VehicleTag" class="vehicle-tag" style="display:none;">
+                    <img id="p5VehicleIcon" src="" class="vehicle-tag-icon">
+                    <span id="p5VehicleName" class="vehicle-tag-name"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="bottomRow" class="bottomRow">
+        <div id="guestWrapper" class="guestControl">
+            <span id="waitingText" class="waitingText hidden">Đang đợi chủ phòng...</span>
+            <button id="leaveBtn">Thoát</button>
+        </div>
+        <button id="startBtn">Bắt đầu</button>
+    </div>
+</div>
+
+<!-- Avatar Selection Modal -->
+<div id="avatarModal" class="modal-overlay hidden">
+    <div class="modal-box">
+        <h3>Chọn ảnh đại diện</h3>
+        <div id="avatarGrid" class="avatar-grid"></div>
+        <button id="closeAvatarModalBtn" class="modal-btn">Đóng</button>
+    </div>
+</div>
+
+<!-- Vehicle Selection Modal -->
+<div id="vehicleModal" class="modal-overlay hidden">
+    <div class="modal-box">
+        <h3>Chọn phương tiện</h3>
+        <div id="vehicleGrid" class="vehicle-grid"></div>
+        <button id="closeVehicleModalBtn" class="modal-btn">Đóng</button>
+    </div>
+</div>
+
+<!-- Map Selection Modal (Chơi đơn) -->
+<div id="mapModal" class="modal-overlay hidden">
+    <div class="modal-box">
+        <h3>Chọn bản đồ</h3>
+        <div id="mapGrid" class="map-grid"></div>
+        <button id="closeMapModalBtn" class="modal-btn">Đóng</button>
+    </div>
+</div>
+
+<button id="exitGameBtn" class="hidden exitGameBtn" title="Thoat ve sanh cho">&#x2715; Thoat</button>
+
+<div id="chatHint" class="hidden">Nhấn Enter hoặc T để chat | "/fly on" bật bay, "/show on" hiện toạ độ</div>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
